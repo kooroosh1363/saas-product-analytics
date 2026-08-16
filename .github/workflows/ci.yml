@@ -1,0 +1,31 @@
+name: Product Analytics CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  analytics-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run unit tests
+        run: python -m pytest -q
+      - name: Download upstream public demo data
+        run: python -m src.download_data
+      - name: Execute analytics pipeline
+        run: python -m src.run_analysis
+      - name: Validate deliverables
+        run: |
+          test -s outputs/executive_summary.csv
+          test -s outputs/user_metrics.csv
+          test -s outputs/feature_adoption.csv
+          test -s outputs/monthly_activity.csv
+          test -s outputs/account_health.csv
+          test -s outputs/cohort_retention.csv
